@@ -1,6 +1,6 @@
 <template>
 	
-	<svg class="histogram" width="1000" height="500">
+	<svg class="histogram" width="500" height="250">
 		<bar v-for="bar in bars" :dimensions="bar"></bar>
 	</svg>
 	
@@ -16,8 +16,8 @@ export default {
 
 	data () {
 		return {
-			width: 1000,
-			height: 500,
+			width: 500,
+			height: 250,
 			barWidth: 25,
 			spaceAround: 5,
 		};
@@ -44,9 +44,11 @@ export default {
 			return d3.max(this.data);
 		},
 		x: function() {
-			return d3.scaleLinear()
+			let result = d3.scaleLinear()
 				.domain(d3.extent(this.data)).nice()
 				.range(0, this.width);
+			console.log(result);
+			return result;
 		},
 		y: function() {
 			let bins = this.bins;
@@ -68,7 +70,7 @@ export default {
 			let binHeights = this.binHeight(this.bins);
 			let xOffsets = this.xOffset(this.bins);
 			let yOffsets = this.yOffset(binHeights);
-			return binHeights.map((e, i) => [this.barWidth, e, xOffsets[i], yOffsets[i]]);
+			return binHeights.map((e, i) => [this.barWidth, e, xOffsets[i], yOffsets[i], this.height]);
 		}
 	},
 	// created: function() {
