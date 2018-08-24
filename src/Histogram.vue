@@ -1,7 +1,11 @@
 <template>
 	
-	<svg class="histogram" width="500" height="250">
-		<bar v-for="bar in bars" :dimensions="bar"></bar>
+	<svg class="histogram" width="550" height="300">
+		<g>
+			<graphTitle :text="title" :canvasWidth="width"></graphTitle>
+			<bar v-for="bar in bars" :dimensions="bar"></bar>
+			<axis v-for="axis in axes" :axisFeatures="axis"></axis>
+		</g>
 	</svg>
 	
 </template>
@@ -10,38 +14,48 @@
 <script>
 import * as d3 from 'd3'
 import Bar from './Bar.vue'
+import Axis from './Axis.vue'
+import Title from './Title.vue'
 
 export default {
-	props: {data: {type: Array, default: () => []}, binNumber: {type: Number}},
+	props: {data: {type: Array, default: () => []}, binNumber: {type: Number}, borderWidth: {type: Number, default: 25}},
 
 	data () {
 		return {
-			width: 500,
-			height: 250,
-			barWidth: 25,
-			spaceAround: 5,
+			width: 550,
+			height: 300,
+			spaceAround: 1,
+			title: "Random Histogram",
 		};
 	},
 	components: {
 		bar: Bar,
+		axis: Axis,
+		graphTitle: Title,
 	},
 	methods: {
 		binHeight: function(bins) {
 			return bins.map(x => (x.length * 10));
 		},
+		binLabels: function(bins) {
+			return bins.map(x => (x.length))
+		},
 		xOffset: function(bins) {
-			return bins.map((x, i) => i * (this.barWidth + this.spaceAround));
+			return bins.map((x, i) => i * (this.barWidth + this.spaceAround) + this.borderWidth);
 		},
 		yOffset: function(binHeights) {
-			return binHeights.map(x => (this.height - x));
+			return binHeights.map(x => (this.height - x - this.borderWidth));
 		},
 	},
 	computed: {
-		min: function() {
-			return d3.min(this.data);
+		barWidth: function() {
+			return this.graphWidth/this.binNumber - this.spaceAround;
 		},
-		max: function() {
-			return d3.max(this.data);
+		graphWidth: function() {
+			return this.width - (2 * this.borderWidth)
+		},
+		graphHeight: function() {
+			return this.height - (2 * this.borderWidth)
 		},
 		x: function() {
 			let result = d3.scaleLinear()
@@ -68,9 +82,21 @@ export default {
 		},
 		bars: function() {
 			let binHeights = this.binHeight(this.bins);
+			let binLabels = this.binLabels(this.bins);
 			let xOffsets = this.xOffset(this.bins);
 			let yOffsets = this.yOffset(binHeights);
-			return binHeights.map((e, i) => [this.barWidth, e, xOffsets[i], yOffsets[i], this.height]);
+			return binHeights.map((e, i) => [this.barWidth, e, xOffsets[i], yOffsets[i], this.height-this.borderWidth, binLabels[i]]);
+		},
+		axes: function() {
+			let xAxisScale = d3.scaleLinear()
+						  	.domain([0, 100])
+						  	.range([0, this.graphWidth])
+			let xAxisOffsets = [this.borderWidth, this.borderWidth + this.graphHeight]
+			let yAxisScale = d3.scaleLinear()
+							.domain([0, 50])
+							.range([this.graphHeight, 0])
+			let yAxisOffsets = [this.borderWidth, this.borderWidth]
+			return [[xAxisScale, "Bottom", this.binNumber, xAxisOffsets], [yAxisScale, "Left", 5, yAxisOffsets]]
 		}
 	},
 	// created: function() {
@@ -94,7 +120,7 @@ export default {
 			//   .attr("fill", "white")
 			//   .text(function (d) {return d;});
 		
-  	// }
+	// }
 }
 </script>
 

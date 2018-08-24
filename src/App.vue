@@ -1,5 +1,5 @@
 <template>
-  <histogram :data="data" :binNumber="10"></histogram>
+  <histogram :data="data" :binNumber="10" :borderWidth="25"></histogram>
 </template>
 
 <script>
